@@ -9,6 +9,8 @@
 -lib mcli
 -lib hscript
 
+-D dump
+
 -cmd nekotools boot bin/neko/edit.n
 
 --next

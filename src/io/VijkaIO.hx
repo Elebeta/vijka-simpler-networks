@@ -17,16 +17,16 @@ class VijkaIO {
 
 	public static
 	function read( config:Config ):Network {
-		print( "Reading a Vijka Network..." );
+		println( "Reading a Vijka Network..." );
 		var network = new Network( config.nodeTolerance );
-		print( "Reading a Vijka Network... Nodes" );
-		readNodes( network, config.vijka.nodeFile );
-		print( "Reading a Vijka Network... Links" );
-		readLinks( network, config.vijka.linkFile );
-		print( "Reading a Vijka Network... Link shapes" );
-		readShapes( network, config.vijka.linkShapeFile );
-		print( "Reading a Vijka Network... Link aliases" );
-		readAliases( network, config.vijka.linkAliasFile );
+		println( "Reading a Vijka Network... Nodes" );
+		readNodes( network, config.baseDir+config.vijka.nodeFile );
+		println( "Reading a Vijka Network... Links" );
+		readLinks( network, config.baseDir+config.vijka.linkFile );
+		println( "Reading a Vijka Network... Link shapes" );
+		readShapes( network, config.baseDir+config.vijka.linkShapeFile );
+		println( "Reading a Vijka Network... Link aliases" );
+		readAliases( network, config.baseDir+config.vijka.linkAliasFile );
 		println( "Reading a Vijka Network... Done!     " );
 		return network;
 	}
@@ -70,10 +70,10 @@ class VijkaIO {
 	static
 	function makeLink( network:Network, vijkaLink:elebeta.ett.vijka.Link ) {
 		var from = network.nodes.getId( vijkaLink.startNodeId );
-		if ( from != null )
+		if ( from == null )
 			throw 'Missing from node ${vijkaLink.startNodeId} for link ${vijkaLink.id}';
 		var to = network.nodes.getId( vijkaLink.finishNodeId );
-		if ( to != null )
+		if ( to == null )
 			throw 'Missing to node ${vijkaLink.finishNodeId} for link ${vijkaLink.id}';
 		return new Link( from, to, vijkaLink.id, vijkaLink.extension, vijkaLink.typeId, vijkaLink.toll );
 	}

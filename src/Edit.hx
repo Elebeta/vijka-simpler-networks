@@ -12,7 +12,8 @@ class Edit {
 			throw "Usage: edit <config_file> edit|save";
 
 		var config:Config = Json.parse( File.getContent( args[0] ) );
-		Sys.setCwd( getDir( args[0] ) );
+		if ( config.baseDir == null || config.baseDir == "./" )
+			config.baseDir = getDir( args[0] );
 
 		switch ( args[1] ) {
 		case "edit":
@@ -36,9 +37,9 @@ class Edit {
 			throw 'Missing `getDir` implementation for ${Sys.systemName()}';
 		var lastSlash = path.lastIndexOf( "/" );
 		if ( lastSlash == -1 )
-			return ".";
+			return "./";
 		else
-			return path.substr( 0, lastSlash );
+			return path.substr( 0, lastSlash+1 );
 	}
 
 }

@@ -1,5 +1,6 @@
 typedef Config = {
 
+	var baseDir:Null<String>;
 	var vijka:VijkaIOFiles;
 	var nodeTolerance:Float;
 

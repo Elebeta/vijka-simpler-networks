@@ -13,8 +13,8 @@ class Network {
 
 	public
 	function new( tol:Float ) {
-		nodes = new NodeCollection( this, tol );
-		links = new LinkCollection( this );
+		nodes = new NodeCollection( tol );
+		links = new LinkCollection();
 	}
 
 }
@@ -28,7 +28,7 @@ class NodeCollection {
 	var geoidx:Rj1Tree<Node>;
 
 	public
-	function new( network, tol:Float ) {
+	function new( tol:Float ) {
 		this.tol = tol;
 		ididx = new Map();
 		geoidx = new Rj1Tree();
@@ -87,7 +87,7 @@ class LinkCollection {
 	var ididx:Map<Int,Link>;
 
 	public
-	function new( network ) {
+	function new() {
 		ididx = new Map();
 	}
 
