@@ -1,5 +1,5 @@
 
-import cratis.network.Link;
+import network.Network;
 
 class Edit {
 
