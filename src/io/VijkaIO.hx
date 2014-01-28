@@ -133,14 +133,25 @@ class VijkaIO {
 	public static
 	function write( network:Network, config:Config ) {
 		println( "Writing the Vijka Network..." );
-		println( "NOT IMPLEMENTED!!" );
+		println( "Writing the Vijka Network... Nodes" );
+		writeNodes( network, config.baseDir+config.vijka.nodeFile );
+		println( "Writing the Vijka Network... Links" );
+		writeLinks( network, config.baseDir+config.vijka.linkFile );
+		if ( config.vijka.linkAliasFile != null ) {
+			println( "Writing the Vijka Network... Link aliases" );
+			writeAliases( network, config.baseDir+config.vijka.linkAliasFile );
+		}
+		if ( config.vijka.linkShapeFile != null ) {
+			println( "Writing the Vijka Network... Link shapes" );
+			writeShapes( network, config.baseDir+config.vijka.linkShapeFile );
+		}
 		println( "Writing the Vijka Network... Done" );
 	}
 
 	public static
 	function writeNodes( network:Network, path:String ) {
 		var nodes:Iterable<elebeta.ett.vijka.Node> = [ for ( node in network.nodes ) makeVijkaNode( node ) ];
-		return genericEtt( path, nodes, Node, "Writing nodes", "No nodes" );
+		return genericEtt( path, nodes, elebeta.ett.vijka.Node, "Writing nodes", "No nodes" );
 	}
 
 	static
@@ -155,7 +166,42 @@ class VijkaIO {
 
 	public static
 	function writeLinks( network:Network, path:String ) {
-		// return new format.ett.Geometry.Point
+		var links:Iterable<elebeta.ett.vijka.Link> = [ for ( link in network.links ) makeVijkaLink( link ) ];
+		return genericEtt( path, links, elebeta.ett.vijka.Link, "Writing links", "No links" );
+	}
+
+	static
+	function makeVijkaLink( link:Link ):elebeta.ett.vijka.Link {
+		return elebeta.ett.vijka.Link.make( link.id, link.from.id, link.to.id, link.extension, link.type, link.toll );
+	}
+
+	public static
+	function writeAliases( network:Network, path:String ) {
+		var aliases = [];
+		for ( link in network.links )
+			for ( alias in link.aliases )
+				aliases.push( makeVijkaAlias( link, alias ) );
+		return genericEtt( path, aliases, elebeta.ett.vijka.LinkAlias, "Writing aliases", "No aliases" );
+	}
+
+	static
+	function makeVijkaAlias( link:Link, alias:String ) {
+		return elebeta.ett.vijka.LinkAlias.make( alias, link.id );
+	}
+
+	public static
+	function writeShapes( network:Network, path:String ) {
+		var shapes:Iterable<elebeta.ett.vijka.LinkShape> = [ for ( link in network.links ) makeVijkaShape( link ) ];
+		return genericEtt( path, shapes, elebeta.ett.vijka.LinkShape, "Writing shapes", "No shapes" );
+	}
+
+	static
+	function makeVijkaShape( link:Link ) {
+		var ls = [];
+		ls.push( makeVijkaPoint( link.from.point ) );
+		ls = ls.concat( link.inflections.array().map( makeVijkaPoint ) );
+		ls.push( makeVijkaPoint( link.to.point ) );
+		return elebeta.ett.vijka.LinkShape.make( link.id, new format.ett.Geometry.LineString( ls ) );
 	}
 
 	static

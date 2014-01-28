@@ -17,13 +17,18 @@ class EditIO {
 		println( "Reading an editing network..." );
 		var network = new Network( config.nodeTolerance );
 		if ( config.edit.nodeEtt != null ) {
-			// TODO
 			println( "Reading an editing network... Restoring nodes" );
+			restoreNodes( network, config.baseDir+config.edit.nodeEtt );
 		}
 		println( "Reading an editing network... Reading links" );
 		readLinks( network, config.baseDir+config.edit.baseFile );
 		println( "Reading an editing network... Done" );
 		return network;
+	}
+
+	public static
+	function restoreNodes( network:Network, path:String ) {
+		VijkaIO.readNodes( network, path );
 	}
 
 	public static
@@ -71,7 +76,7 @@ class EditIO {
 		while ( node == null ) {
 			var id = Std.random( 1000000000 );
 			if ( network.nodes.getId( id ) == null ) {
-				// trace( "New node "+id );
+				trace( "New node "+id );
 				node = new Node( id, cp );
 				network.nodes.add( node );
 			}
@@ -91,7 +96,7 @@ class EditIO {
 		println( "Writing the editing network..." );
 		if ( config.edit.nodeEtt != null ) {
 			println( "Writing the editing network... Nodes" );
-			keepNodes( network, config.edit.nodeEtt );
+			keepNodes( network, config.baseDir+config.edit.nodeEtt );
 		}
 		println( "Writing the editing network... Links" );
 		writeLinks( network, config.baseDir+config.edit.baseFile );
@@ -99,8 +104,8 @@ class EditIO {
 	}
 
 	public static
-	function keepNodes( network:Network, path ) {
-		// TODO
+	function keepNodes( network:Network, path:String ) {
+		VijkaIO.writeNodes( network, path );
 	}
 
 	public static
@@ -146,11 +151,6 @@ class EditIO {
 	static
 	function sgpoint( point:common.Point ):Point {
 		return { x:point.x, y:point.y };
-	}
-
-	static
-	function keepNode( node:Node ) {
-		// TODO
 	}
 
 }
