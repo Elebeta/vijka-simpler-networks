@@ -11,29 +11,22 @@ import sys.io.File;
 import Sys.print;
 import Sys.println;
 
-typedef VijkaIOConfig = {
-	var nodeFile:String;
-	var linkFile:String;
-	var linkAliasFile:String;
-	var linkShapeFile:String;
-}
-
 class VijkaIO {
 
 // VijkaIO: READING
 
 	public static
-	function read( config:VijkaIOConfig ):Network {
+	function read( config:Config ):Network {
 		print( "Reading a Vijka Network..." );
-		var network = new Network( 0. );
+		var network = new Network( config.nodeTolerance );
 		print( "Reading a Vijka Network... Nodes" );
-		readNodes( network, config.nodeFile );
+		readNodes( network, config.vijka.nodeFile );
 		print( "Reading a Vijka Network... Links" );
-		readLinks( network, config.linkFile );
+		readLinks( network, config.vijka.linkFile );
 		print( "Reading a Vijka Network... Link shapes" );
-		readShapes( network, config.linkShapeFile );
+		readShapes( network, config.vijka.linkShapeFile );
 		print( "Reading a Vijka Network... Link aliases" );
-		readAliases( network, config.linkAliasFile );
+		readAliases( network, config.vijka.linkAliasFile );
 		println( "Reading a Vijka Network... Done!     " );
 		return network;
 	}
