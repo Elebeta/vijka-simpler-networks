@@ -6,6 +6,7 @@ import network.Network;
 import network.Node;
 import SimpleGeography;
 import Sys.println;
+using Lambda;
 
 class EditIO {
 
@@ -13,13 +14,71 @@ class EditIO {
 
 	public static
 	function read( config:Config ):Network {
-		// TODO
-		return null;
+		println( "Reading an editing network..." );
+		var network = new Network( config.nodeTolerance );
+		if ( config.edit.nodeEtt != null ) {
+			// TODO
+			println( "Reading an editing network... Restoring nodes" );
+		}
+		println( "Reading an editing network... Reading links" );
+		readLinks( network, config.baseDir+config.edit.baseFile );
+		println( "Reading an editing network... Done" );
+		return network;
 	}
 
 	public static
 	function readLinks( network:Network, path:String ) {
+		println( "Reading links... Fetching file content" );
+		var text = File.getContent( path );
+		println( "Reading links... Parsing JSON" );
+		var json = Json.parse( text );
+		println( "Reading links... Generating geography" );
+		var set = SimpleGeography.fromGeoJson( json );
+		println( "Reading links... Importing links" );
+		set.features.iter( importLinkFeature.bind( network ) );
+	}
 
+	static
+	function importLinkFeature( network:Network, feature:GeographyFeature ) {
+		switch ( feature.geometry ) {
+		case LineString( points ):
+
+			var from = getOrAddNode( network, points[0] );
+			var to = getOrAddNode( network, points[points.length-1] );
+
+			var data:LinkFeatureProperties = feature.properties;
+
+			// TODO validate data
+
+			var inflections = points.slice( 1, points.length-2 ).map( cpoint );
+
+			var link = new Link( from, to, data.id, data.length, data.type, data.toll, inflections );
+
+			network.links.add( link );
+
+		case all:
+			throw 'Unexpected feature $all';
+		}
+	}
+
+	static
+	function getOrAddNode( network:Network, point:Point ) {
+		var cp = cpoint( point );
+		var node = network.nodes.getPoint( cp );
+		while ( node == null ) {
+			var id = Std.random( 1000000000 );
+			if ( network.nodes.getId( id ) == null ) {
+				// trace( "New node "+id );
+				node = new Node( id, cp );
+				network.nodes.add( node );
+			}
+		}
+		return node;
+	}
+
+	static
+	function cpoint( point:Point ):common.Point {
+		return new common.Point( point.x, point.y );
 	}
 
 // EditIO: WRITING
@@ -48,9 +107,9 @@ class EditIO {
 		println( "Writing links... Creating GeoJSON objects" );
 		var json = SimpleGeography.toGeoJson( set );
 		println( "Writing links... Stringifying GeoJSON" );
-		var str = Json.stringify( json );
+		var text = Json.stringify( json );
 		println( "Writing links... Writing to file" );
-		File.saveContent( path, str );
+		File.saveContent( path, text );
 	}
 
 	public static
@@ -62,7 +121,7 @@ class EditIO {
 	function linkFeature( link:Link ):GeographyFeature {
 		return {
 			geometry:linkGeometry( link ),
-			properties: {
+			properties:{
 				id:link.id,
 				length:link.extension,
 				type:link.type,
@@ -91,4 +150,13 @@ class EditIO {
 		// TODO
 	}
 
+}
+
+private
+typedef LinkFeatureProperties = {
+	var id:Int;
+	var length:Float;
+	var type:Int;
+	var toll:Float;
+	var aliases:String;
 }

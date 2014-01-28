@@ -129,7 +129,9 @@ class VijkaIO {
 
 	public static
 	function write( network:Network, config:Config ) {
-		
+		println( "Writing the Vijka Network..." );
+		println( "NOT IMPLEMENTED!!" );
+		println( "Writing the Vijka Network... Done" );
 	}
 
 }
