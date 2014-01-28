@@ -54,6 +54,9 @@ class EditIO {
 
 			var link = new Link( from, to, data.id, data.length, data.type, data.toll, inflections );
 
+			for ( alias in data.aliases.split( "," ) )
+				link.aliases.add( alias );
+
 			network.links.add( link );
 
 		case all:

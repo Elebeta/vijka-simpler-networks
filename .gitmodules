@@ -1,0 +1,3 @@
+[submodule "vijka"]
+	path = vijka
+	url = git@github.com:/Elebeta/vijka

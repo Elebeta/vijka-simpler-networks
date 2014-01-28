@@ -1,7 +1,10 @@
 package io;
 
 import common.Point;
+import format.ett.Data.Encoding in ETTEncoding;
+import format.ett.Data.Field in ETTField;
 import format.ett.Reader;
+import format.ett.Writer;
 import haxe.io.Eof;
 import network.Link;
 import network.Network;
@@ -132,6 +135,49 @@ class VijkaIO {
 		println( "Writing the Vijka Network..." );
 		println( "NOT IMPLEMENTED!!" );
 		println( "Writing the Vijka Network... Done" );
+	}
+
+	public static
+	function writeNodes( network:Network, path:String ) {
+		var nodes:Iterable<elebeta.ett.vijka.Node> = [ for ( node in network.nodes ) makeVijkaNode( node ) ];
+		return genericEtt( path, nodes, Node, "Writing nodes", "No nodes" );
+	}
+
+	static
+	function makeVijkaNode( node:Node ):elebeta.ett.vijka.Node {
+		return elebeta.ett.vijka.Node.make( node.id, makeVijkaPoint( node.point ) );
+	}
+
+	static
+	function makeVijkaPoint( point:Point ):format.ett.Geometry.Point {
+		return new format.ett.Geometry.Point( point.x, point.y );
+	}
+
+	public static
+	function writeLinks( network:Network, path:String ) {
+		// return new format.ett.Geometry.Point
+	}
+
+	static
+	function genericEtt( path:String, table:Iterable<Dynamic>, cl:Dynamic
+	, status:Null<String>, notAvailable:Null<String> ) {
+		if ( status != null ) println( status );
+		if ( table == null )
+			throw notAvailable != null ? notAvailable : "Table not available";
+		var eout = writeEtt( cl, cl.ettFields(), path );
+		for ( r in table )
+			eout.write( r );
+		eout.close();
+	}
+
+	static
+	function writeEtt( cl:Class<Dynamic>, fields:Array<ETTField>, outputPath:String ):ETTWriter {
+		var fout = File.write( outputPath, true );
+		var finfo = new format.ett.Data.FileInfo( "\n", ETTEncoding.UTF8, "\t", "\""
+		, Type.getClassName( cl ), fields );
+		var w = new ETTWriter( finfo );
+		w.prepare( fout );
+		return w;
 	}
 
 }

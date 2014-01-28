@@ -2,7 +2,7 @@
 
 -main Edit
 
--cp vijka
+-cp vijka/src
 -cp src
 
 -lib elebeta-format
@@ -19,7 +19,7 @@
 
 -main Edit
 
--cp vijka
+-cp vijka/src
 -cp src
 
 -lib elebeta-format
