@@ -85,6 +85,16 @@ class InflectionCollection {
 		inflections = [];
 	}
 
+	public
+	function array() {
+		return inflections.copy();
+	}
+
+	public
+	function iterator() {
+		return inflections.iterator();
+	}
+
 }
 
 class AliasCollection {
@@ -119,6 +129,16 @@ class AliasCollection {
 	public
 	function clear() {
 		aliases = [];
+	}
+
+	public
+	function join( sep:String ) {
+		return aliases.join( sep );
+	}
+
+	public
+	function iterator() {
+		return aliases.iterator();
 	}
 
 }

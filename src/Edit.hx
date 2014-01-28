@@ -1,5 +1,6 @@
 import haxe.Json;
 import io.VijkaIO;
+import io.EditIO;
 import network.Network;
 import sys.io.File;
 
@@ -19,12 +20,12 @@ class Edit {
 		case "edit":
 
 			var network = VijkaIO.read( config );
-			// TODO save as editing network
+			EditIO.write( network, config );
 
 		case "save":
 
-			// TODO read as editing netwokr
-			// TODO save as Vijka network
+			var network = EditIO.read( config );
+			VijkaIO.write( network, config );
 
 		case all:
 			throw 'Unsupported command $all';

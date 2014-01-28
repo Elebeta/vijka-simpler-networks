@@ -6,8 +6,6 @@ import haxe.io.Eof;
 import network.Link;
 import network.Network;
 import network.Node;
-import sys.FileSystem;
-import sys.io.File;
 import Sys.print;
 import Sys.println;
 
@@ -23,15 +21,19 @@ class VijkaIO {
 		readNodes( network, config.baseDir+config.vijka.nodeFile );
 		println( "Reading a Vijka Network... Links" );
 		readLinks( network, config.baseDir+config.vijka.linkFile );
-		println( "Reading a Vijka Network... Link shapes" );
-		readShapes( network, config.baseDir+config.vijka.linkShapeFile );
-		println( "Reading a Vijka Network... Link aliases" );
-		readAliases( network, config.baseDir+config.vijka.linkAliasFile );
+		if ( config.vijka.linkAliasFile != null ) {
+			println( "Reading a Vijka Network... Link aliases" );
+			readAliases( network, config.baseDir+config.vijka.linkAliasFile );
+		}
+		if ( config.vijka.linkShapeFile != null ) {
+			println( "Reading a Vijka Network... Link shapes" );
+			readShapes( network, config.baseDir+config.vijka.linkShapeFile );
+		}
 		println( "Reading a Vijka Network... Done!     " );
 		return network;
 	}
 
-	static
+	public static
 	function readNodes( network:Network, path:String ) {
 		var einp = readEtt( path );
 		while ( true ) {
@@ -54,7 +56,7 @@ class VijkaIO {
 		return new Point( vijkaPoint.x, vijkaPoint.y );
 	}
 
-	static
+	public static
 	function readLinks( network:Network, path:String ) {
 		var einp = readEtt( path );
 		while ( true ) {
@@ -78,7 +80,7 @@ class VijkaIO {
 		return new Link( from, to, vijkaLink.id, vijkaLink.extension, vijkaLink.typeId, vijkaLink.toll );
 	}
 
-	static
+	public static
 	function readShapes( network:Network, path:String ) {
 		var einp = readEtt( path );
 		while ( true ) {
@@ -99,7 +101,7 @@ class VijkaIO {
 		}
 	}
 
-	static
+	public static
 	function readAliases( network:Network, path:String ) {
 		var einp = readEtt( path );
 		while ( true ) {
@@ -118,22 +120,16 @@ class VijkaIO {
 	}
 
 	static
-	function readFile( path:String, binary:Bool ) {
-		if ( !FileSystem.exists( path ) )
-			throw "File \""+path+"\" does not exist";
-		if ( FileSystem.isDirectory( path ) )
-			throw "Expected a file but found a folder: \""+path+"\"";
-		return File.read( path, binary );
-	}
-
-	static
 	function readEtt( path:String ) {
-		return new ETTReader( readFile( path, true ) );
+		return new ETTReader( File.read( path, true ) );
 	}
 
 
 // VijkaIO: WRITING
 
-	// TODO
+	public static
+	function write( network:Network, config:Config ) {
+		
+	}
 
 }

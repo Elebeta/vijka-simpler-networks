@@ -76,6 +76,11 @@ class NodeCollection {
 		return [ for ( x in geoidx.search( bounds.xmin, bounds.ymin, bounds.width, bounds.height ) ) x ];
 	}
 
+	public
+	function iterator() {
+		return ididx.iterator();
+	}
+
 	function dist( a:Point, b:Point ) {
 		return Math.sqrt( (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y) );
 	}
@@ -106,6 +111,11 @@ class LinkCollection {
 	public
 	function getId( id ):Null<Link> {
 		return ididx.get( id );
+	}
+
+	public
+	function iterator() {
+		return ididx.iterator();
 	}
 
 }
