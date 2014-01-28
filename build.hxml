@@ -1,0 +1,12 @@
+-java bin/java/
+
+-main Edit
+
+-cp vijka
+-cp src
+
+-lib elebeta-format
+-lib mcli
+-lib hscript
+
+-cmd cp bin/java/java.jar bin/java/edit.jar
