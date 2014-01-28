@@ -5,7 +5,10 @@ import elebeta.ds.tree.Rj1Tree;
 
 class Network {
 
+	public
 	var nodes(default,null):NodeCollection;
+
+	public
 	var links(default,null):LinkCollection;
 
 	public
