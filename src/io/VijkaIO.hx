@@ -20,6 +20,8 @@ typedef VijkaIOConfig = {
 
 class VijkaIO {
 
+// VijkaIO: READING
+
 	public static
 	function read( config:VijkaIOConfig ):Network {
 		print( "Reading a Vijka Network..." );
@@ -135,5 +137,10 @@ class VijkaIO {
 	function readEtt( path:String ) {
 		return new ETTReader( readFile( path, true ) );
 	}
+
+
+// VijkaIO: WRITING
+
+	// TODO
 
 }
