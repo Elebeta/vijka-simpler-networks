@@ -17,29 +17,49 @@ class EditIO {
 		return null;
 	}
 
+	public static
+	function readLinks( network:Network, path:String ) {
+
+	}
+
 // EditIO: WRITING
 
 	public static
 	function write( network:Network, config:Config ) {
 		println( "Writing the editing network..." );
-		println( "Writing the editing network... Generating geography objects" );
-		var set = writeLinks( network );
-		println( "Writing the editing network... Creating GeoJSON objects" );
-		var json = SimpleGeography.toGeoJson( set );
-		println( "Writing the editing network... Stringifying GeoJSON" );
-		var str = Json.stringify( json );
-		println( "Writing the editing network... Writing to file" );
-		File.saveContent( config.baseDir+config.edit.baseFile, str );
+		if ( config.edit.nodeEtt != null ) {
+			println( "Writing the editing network... Nodes" );
+			keepNodes( network, config.edit.nodeEtt );
+		}
+		println( "Writing the editing network... Links" );
+		writeLinks( network, config.baseDir+config.edit.baseFile );
 		println( "Writing the editing network... Done" );
 	}
 
 	public static
-	function writeLinks( network:Network ):GeographySet {
-		return { features:[ for ( link in network.links ) writeLink( link ) ] };
+	function keepNodes( network:Network, path ) {
+		// TODO
+	}
+
+	public static
+	function writeLinks( network:Network, path:String ) {
+		println( "Writing links... Generating geography objects" );
+		var set = linkSet( network );
+		println( "Writing links... Creating GeoJSON objects" );
+		var json = SimpleGeography.toGeoJson( set );
+		println( "Writing links... Stringifying GeoJSON" );
+		var str = Json.stringify( json );
+		println( "Writing links... Writing to file" );
+		File.saveContent( path, str );
+	}
+
+	public static
+	function linkSet( network:Network ):GeographySet {
+		return { features:[ for ( link in network.links ) linkFeature( link ) ] };
 	}
 
 	static
-	function writeLink( link:Link ):GeographyFeature {
+	function linkFeature( link:Link ):GeographyFeature {
 		return {
 			geometry:linkGeometry( link ),
 			properties: {
@@ -66,7 +86,7 @@ class EditIO {
 		return { x:point.x, y:point.y };
 	}
 
-	public static
+	static
 	function keepNode( node:Node ) {
 		// TODO
 	}
