@@ -8,7 +8,7 @@ class Node {
 	var id:Int;
 
 	public
-	var point:Point;
+	var point(default,null):Point;
 
 	public
 	function new( id, point ) {

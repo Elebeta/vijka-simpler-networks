@@ -3,10 +3,10 @@ package common;
 class Point {
 
 	public
-	var x:Float;
+	var x(default,null):Float;
 
 	public
-	var y:Float;
+	var y(default,null):Float;
 
 	public
 	function new( x, y ) {

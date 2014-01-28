@@ -1,3 +1,18 @@
+-neko bin/neko/edit.n
+
+-main Edit
+
+-cp vijka
+-cp src
+
+-lib elebeta-format
+-lib mcli
+-lib hscript
+
+-cmd nekotools boot bin/neko/edit.n
+
+--next
+
 -java bin/java/
 
 -main Edit

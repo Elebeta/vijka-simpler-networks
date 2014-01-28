@@ -44,11 +44,20 @@ class Link {
 
 class InflectionCollection {
 
+	public
+	var length(get,never):Int;
+	function get_length() return inflections.length;
+
 	var inflections:Array<Point>;
 
 	public
 	function new( inflections:Array<Point> ) {
 		this.inflections = inflections;
+	}
+
+	public
+	function add( point:Point ) {
+		inflections.push( point );
 	}
 
 	public
@@ -63,28 +72,48 @@ class InflectionCollection {
 
 	public
 	function remove( pos:Int ) {
-		inflections.remove( inflections[pos] );
+		var old = inflections;
+		inflections = [];
+		for ( i in 0...old.length )
+			if ( i != pos )
+				inflections.push( old[i] );
+		return pos >= 0 && pos < old.length;
+	}
+
+	public
+	function clear() {
+		inflections = [];
 	}
 
 }
 
 class AliasCollection {
 
+	public
+	var length(get,never):Int;
+	function get_length() return aliases.length;
+
 	var aliases:Array<String>;
 
 	public
 	function new() {
-
+		aliases = [];
 	}
 
 	public
-	function add( alias:String ) {
-
+	function add( alias ) {
+		if ( aliases.indexOf( alias ) == -1 )
+			aliases.push( alias );
 	}
 
 	public
-	function remove( alias:String ) {
+	function remove( alias ):Bool {
+		return aliases.remove( alias );
+	}
 
+	public
+	function has( alias ):Bool {
+		return aliases.indexOf( alias ) > 0;
 	}
 
 	public
