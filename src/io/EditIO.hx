@@ -58,11 +58,13 @@ class EditIO {
 
 			var inflections = points.slice( 1, points.length-2 ).map( cpoint );
 
-			var link = new Link( from, to, data.id, data.length, data.type, data.toll, inflections );
+			var link = new Link( from, to, 0, 0., 9, 0., inflections );
 
 			if ( data.aliases != null )
 				for ( alias in data.aliases.split( "," ) )
 					link.aliases.add( alias );
+
+			importLinkData( config.linkGen, network, link, data );
 
 			network.links.add( link );
 
@@ -77,7 +79,7 @@ class EditIO {
 		var node = network.nodes.getPoint( cp );
 		if ( node == null ) {
 			var id = genNodeId( config.nodeTolerance, config.nodeGen, network, cp );
-			trace( "New node "+id );
+			trace( "New node "+id+": x="+point.x+" y="+point.y );
 			node = new Node( id, cp );
 			network.nodes.add( node );
 		}
@@ -88,12 +90,63 @@ class EditIO {
 	function genNodeId( nodeTolerance:Float, nodeGen:NodeGenerationSettings, network:Network, point:common.Point ) {
 		var xi = Std.int( point.x/nodeTolerance );
 		var yi = Std.int( point.y/nodeTolerance );
-		var lcg = new LinearCongruentialGenerator( 1 + nodeGen.maxId - nodeGen.minId, yi+xi, yi-xi, 29 );
+		var lcg = new LinearCongruentialGenerator( 1+nodeGen.maxId-nodeGen.minId, xi, yi, 29 );
 		var id = 0;
 		do {
 			id = nodeGen.minId + lcg.next();
 		} while ( network.nodes.getId( id ) != null );
 		return id;
+	}
+
+	static
+	function importLinkData( linkGen:LinkGenerationSettings, network:Network, link:Link, data:LinkFeatureProperties ) {
+		importLinkId( linkGen, network, link, data );
+		importLinkExtension( link, data );
+	}
+
+	static
+	function importLinkId( linkGen:LinkGenerationSettings, network:Network, link:Link, data:LinkFeatureProperties ) {
+		var lcg = null;
+		var id = data.id;
+		while ( id == null || id == 0 || network.links.getId( id ) != null ) {
+			if ( lcg == null ) {
+				lcg = new LinearCongruentialGenerator( 1+linkGen.maxId-linkGen.minId, link.from.id, link.to.id, 29 );				
+			}
+			id = linkGen.minId + lcg.next();
+		}
+		if ( id != data.id ) {
+			trace( "New link id "+id+": from="+link.from.id+" to="+link.to.id );
+		}
+		link.id = id;
+	}
+
+	static
+	function importLinkExtension( link:Link, data:LinkFeatureProperties ) {
+		var ext = data.length;
+		if ( ext == null || ext < 0 ) {
+			ext = linkExtension( link );
+			trace( "Computed link extension "+ext+": link="+link.id );
+		}
+		link.extension = ext;
+	}
+
+	static
+	function linkExtension( link:Link ) {
+		var pre:common.Point = link.from.point;
+		var ext = 0.;
+		for ( p in link.inflections ) {
+			ext += pre.distanceTo( p );
+			pre = p;
+		}
+		ext += pre.distanceTo( link.to.point );
+		return ext;
+	}
+
+	static
+	function importLinkSpeed( network:Network, link:Link, data:LinkFeatureProperties ) {
+		// priority: type, speed, time
+		// priority lost when value is `null` or `0`
+		// TODO
 	}
 
 	static
@@ -169,9 +222,11 @@ class EditIO {
 
 private
 typedef LinkFeatureProperties = {
-	var id:Int;
-	var length:Float;
-	var type:Int;
-	var toll:Float;
-	var aliases:String;
+	var id:Null<Int>;
+	var length:Null<Float>;
+	var type:Null<Int>;
+	var speed:Null<Float>;
+	var time:Null<Float>;
+	var toll:Null<Float>;
+	var aliases:Null<String>;
 }
