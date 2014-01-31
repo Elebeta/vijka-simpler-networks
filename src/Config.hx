@@ -4,6 +4,7 @@ typedef Config = {
 	var vijka:VijkaIOFiles;
 	var edit:EditIOFiles;
 	var nodeTolerance:Float;
+	var maxNodeId:Int;
 
 }
 

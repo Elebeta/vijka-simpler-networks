@@ -21,7 +21,7 @@ class EditIO {
 			restoreNodes( network, config.baseDir+config.edit.nodeEtt );
 		}
 		println( "Reading an editing network... Reading links" );
-		readLinks( network, config.baseDir+config.edit.baseFile );
+		readLinks( config, network, config.baseDir+config.edit.baseFile );
 		println( "Reading an editing network... Done" );
 		return network;
 	}
@@ -32,7 +32,7 @@ class EditIO {
 	}
 
 	public static
-	function readLinks( network:Network, path:String ) {
+	function readLinks( config:Config, network:Network, path:String ) {
 		println( "Reading links... Fetching file content" );
 		var text = File.getContent( path );
 		println( "Reading links... Parsing JSON" );
@@ -40,16 +40,16 @@ class EditIO {
 		println( "Reading links... Generating geography" );
 		var set = SimpleGeography.fromGeoJson( json );
 		println( "Reading links... Importing links" );
-		set.features.iter( importLinkFeature.bind( network ) );
+		set.features.iter( importLinkFeature.bind( config, network ) );
 	}
 
 	static
-	function importLinkFeature( network:Network, feature:GeographyFeature ) {
+	function importLinkFeature( config:Config, network:Network, feature:GeographyFeature ) {
 		switch ( feature.geometry ) {
 		case LineString( points ):
 
-			var from = getOrAddNode( network, points[0] );
-			var to = getOrAddNode( network, points[points.length-1] );
+			var from = getOrAddNode( config, network, points[0] );
+			var to = getOrAddNode( config, network, points[points.length-1] );
 
 			var data:LinkFeatureProperties = feature.properties;
 
@@ -71,18 +71,28 @@ class EditIO {
 	}
 
 	static
-	function getOrAddNode( network:Network, point:Point ) {
+	function getOrAddNode( config:Config, network:Network, point:Point ) {
 		var cp = cpoint( point );
 		var node = network.nodes.getPoint( cp );
-		while ( node == null ) {
-			var id = Std.random( 1000000000 );
-			if ( network.nodes.getId( id ) == null ) {
-				trace( "New node "+id );
-				node = new Node( id, cp );
-				network.nodes.add( node );
-			}
+		if ( node == null ) {
+			var id = genNodeId( config, network, cp );
+			trace( "New node "+id );
+			node = new Node( id, cp );
+			network.nodes.add( node );
 		}
 		return node;
+	}
+
+	static
+	function genNodeId( config:Config, network:Network, point:common.Point ) {
+		var xi = Std.int( point.x/config.nodeTolerance );
+		var yi = Std.int( point.y/config.nodeTolerance );
+		var lcg = new LinearCongruentialGenerator( config.maxNodeId, yi+xi, yi-xi, 29 );
+		var id = 0;
+		do {
+			id = lcg.next();
+		} while ( network.nodes.getId( id ) != null );
+		return id;
 	}
 
 	static
