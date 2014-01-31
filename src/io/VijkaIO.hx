@@ -179,8 +179,9 @@ class VijkaIO {
 	function writeAliases( network:Network, path:String ) {
 		var aliases = [];
 		for ( link in network.links )
-			for ( alias in link.aliases )
-				aliases.push( makeVijkaAlias( link, alias ) );
+			if ( link.aliases.length > 0 )
+				for ( alias in link.aliases )
+					aliases.push( makeVijkaAlias( link, alias ) );
 		return genericEtt( path, aliases, elebeta.ett.vijka.LinkAlias, "Writing aliases", "No aliases" );
 	}
 
