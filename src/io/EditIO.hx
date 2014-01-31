@@ -1,5 +1,6 @@
 package io;
 
+import Config;
 import haxe.Json;
 import network.Link;
 import network.Network;
@@ -75,7 +76,7 @@ class EditIO {
 		var cp = cpoint( point );
 		var node = network.nodes.getPoint( cp );
 		if ( node == null ) {
-			var id = genNodeId( config, network, cp );
+			var id = genNodeId( config.nodeTolerance, config.nodeGen, network, cp );
 			trace( "New node "+id );
 			node = new Node( id, cp );
 			network.nodes.add( node );
@@ -84,13 +85,13 @@ class EditIO {
 	}
 
 	static
-	function genNodeId( config:Config, network:Network, point:common.Point ) {
-		var xi = Std.int( point.x/config.nodeTolerance );
-		var yi = Std.int( point.y/config.nodeTolerance );
-		var lcg = new LinearCongruentialGenerator( config.maxNodeId, yi+xi, yi-xi, 29 );
+	function genNodeId( nodeTolerance:Float, nodeGen:NodeGenerationSettings, network:Network, point:common.Point ) {
+		var xi = Std.int( point.x/nodeTolerance );
+		var yi = Std.int( point.y/nodeTolerance );
+		var lcg = new LinearCongruentialGenerator( 1 + nodeGen.maxId - nodeGen.minId, yi+xi, yi-xi, 29 );
 		var id = 0;
 		do {
-			id = lcg.next();
+			id = nodeGen.minId + lcg.next();
 		} while ( network.nodes.getId( id ) != null );
 		return id;
 	}
