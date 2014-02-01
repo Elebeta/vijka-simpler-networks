@@ -21,7 +21,7 @@ class Point {
 
 	public static
 	function distance( a:Point, b:Point ) {
-		return jonas.MathExtension.earth_distance_haversine( a.y, a.x, b.y, b.x );
+		return 1e-3*jonas.MathExtension.earth_distance_haversine( a.y, a.x, b.y, b.x );
 	}
 
 }

@@ -17,7 +17,7 @@ class Link {
 	var extension:Float;
 
 	public
-	var type:Int;
+	var type:LinkType;
 
 	public
 	var toll:Float;

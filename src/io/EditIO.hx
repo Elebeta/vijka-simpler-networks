@@ -3,6 +3,7 @@ package io;
 import Config;
 import haxe.Json;
 import network.Link;
+import network.LinkType;
 import network.Network;
 import network.Node;
 import SimpleGeography;
@@ -21,6 +22,10 @@ class EditIO {
 			println( "Reading an editing network... Restoring nodes" );
 			restoreNodes( network, config.baseDir+config.edit.nodeEtt );
 		}
+		println( "Reading an editing network... Restoring link types" );
+		restoreTypes( network, config.baseDir+config.vijka.linkTypeFile );
+		println( "Reading an editing network... Restoring link type speeds" );
+		restoreSpeeds( network, config.baseDir+config.vijka.linkSpeedFile );
 		println( "Reading an editing network... Reading links" );
 		readLinks( config, network, config.baseDir+config.edit.baseFile );
 		println( "Reading an editing network... Done" );
@@ -30,6 +35,16 @@ class EditIO {
 	public static
 	function restoreNodes( network:Network, path:String ) {
 		VijkaIO.readNodes( network, path );
+	}
+
+	public static
+	function restoreTypes( network:Network, path:String ) {
+		VijkaIO.readTypes( network, path );
+	}
+
+	public static
+	function restoreSpeeds( network:Network, path:String ) {
+		VijkaIO.readSpeeds( network, path );
 	}
 
 	public static
@@ -54,17 +69,15 @@ class EditIO {
 
 			var data:LinkFeatureProperties = feature.properties;
 
-			// TODO validate data
+			var inflections = points.slice( 1, points.length-1 ).map( cpoint );
 
-			var inflections = points.slice( 1, points.length-2 ).map( cpoint );
-
-			var link = new Link( from, to, 0, 0., 9, 0., inflections );
+			var link = new Link( from, to, 0, 0., null, 0., inflections );
 
 			if ( data.aliases != null )
 				for ( alias in data.aliases.split( "," ) )
 					link.aliases.add( alias );
 
-			importLinkData( config.linkGen, network, link, data );
+			importLinkData( config, network, link, data );
 
 			network.links.add( link );
 
@@ -99,16 +112,18 @@ class EditIO {
 	}
 
 	static
-	function importLinkData( linkGen:LinkGenerationSettings, network:Network, link:Link, data:LinkFeatureProperties ) {
-		importLinkId( linkGen, network, link, data );
+	function importLinkData( config:Config, network:Network, link:Link, data:LinkFeatureProperties ) {
+		importLinkId( config.linkGen, network, link, data );
 		importLinkExtension( link, data );
+		importLinkSpeed( config.defaultVehicle, network, link, data );
+		importLinkToll( link, data );
 	}
 
 	static
 	function importLinkId( linkGen:LinkGenerationSettings, network:Network, link:Link, data:LinkFeatureProperties ) {
 		var lcg = null;
 		var id = data.id;
-		while ( id == null || id == 0 || network.links.getId( id ) != null ) {
+		while ( id == null || network.links.getId( id ) != null ) {
 			if ( lcg == null ) {
 				lcg = new LinearCongruentialGenerator( 1+linkGen.maxId-linkGen.minId, link.from.id, link.to.id, 29 );				
 			}
@@ -143,10 +158,59 @@ class EditIO {
 	}
 
 	static
-	function importLinkSpeed( network:Network, link:Link, data:LinkFeatureProperties ) {
+	function importLinkSpeed( vehicle:Int, network:Network, link:Link, data:LinkFeatureProperties ) {
 		// priority: type, speed, time
-		// priority lost when value is `null` or `0`
-		// TODO
+		// priority lost when value is `null` or (speed or time only) `<0`
+		if ( data.type != null ) {
+			var type = network.types.getId( data.type );
+			if ( type == null )
+				throw 'No type ${data.type}';
+			link.type = type;
+		}
+		else if ( data.speed != null && data.speed >= 0. ) {
+			var type = null;
+			var best = Math.POSITIVE_INFINITY;
+			for ( t in network.types ) {
+				var speed = t.speeds.get( vehicle );
+				if ( speed != null ) {
+					var d = Math.abs( speed - data.speed );
+					if ( d < best ) {
+						best = d;
+						type = t;
+					}
+				}
+			}
+			if ( type == null )
+				throw 'Could not find type for speed ${data.speed} (vehicle $vehicle)';
+			trace( 'Setting type ${type.id}: link=${link.id} speed=${data.speed}' );
+			link.type = type;
+		}
+		else if ( data.time != null && data.time >= 0. ) {
+			var type = null;
+			var best = Math.POSITIVE_INFINITY;
+			for ( t in network.types ) {
+				var speed = t.speeds.get( vehicle );
+				if ( speed != null ) {
+					var d = Math.abs( link.extension/speed*60 - data.time );
+					if ( d < best ) {
+						best = d;
+						type = t;
+					}
+				}
+			}
+			if ( type == null )
+				throw 'Could not find type for travel time ${data.time} (vehicle $vehicle)';
+			trace( 'Setting type ${type.id}: link=${link.id} travel time=${data.time}' );
+			link.type = type;
+		}
+		else {
+			throw 'No type/speed/travel time information';
+		}
+	}
+
+	static
+	function importLinkToll( link:Link, data:LinkFeatureProperties ) {
+		link.toll = ( data.toll != null && data.toll >= 0. ) ? data.toll : 0.;
 	}
 
 	static
@@ -164,7 +228,7 @@ class EditIO {
 			keepNodes( network, config.baseDir+config.edit.nodeEtt );
 		}
 		println( "Writing the editing network... Links" );
-		writeLinks( network, config.baseDir+config.edit.baseFile );
+		writeLinks( config, network, config.baseDir+config.edit.baseFile );
 		println( "Writing the editing network... Done" );
 	}
 
@@ -174,9 +238,9 @@ class EditIO {
 	}
 
 	public static
-	function writeLinks( network:Network, path:String ) {
+	function writeLinks( config:Config, network:Network, path:String ) {
 		println( "Writing links... Generating geography objects" );
-		var set = linkSet( network );
+		var set = linkSet( config.defaultVehicle, network );
 		println( "Writing links... Creating GeoJSON objects" );
 		var json = SimpleGeography.toGeoJson( set );
 		println( "Writing links... Stringifying GeoJSON" );
@@ -186,22 +250,35 @@ class EditIO {
 	}
 
 	public static
-	function linkSet( network:Network ):GeographySet {
-		return { features:[ for ( link in network.links ) linkFeature( link ) ] };
+	function linkSet( vehicle:Int, network:Network ):GeographySet {
+		return { features:[ for ( link in network.links ) linkFeature( vehicle, link ) ] };
 	}
 
 	static
-	function linkFeature( link:Link ):GeographyFeature {
+	function linkFeature( vehicle:Int, link:Link ):GeographyFeature {
 		return {
 			geometry:linkGeometry( link ),
 			properties:{
 				id:link.id,
 				length:link.extension,
-				type:link.type,
+				type:link.type.id,
+				speed:getSpeed( link, vehicle ),
+				time:getTravelTime( link, vehicle ),
 				toll:link.toll,
 				aliases:link.aliases.join( "," )
 			}
 		}
+	}
+
+	static
+	function getSpeed( link:Link, vehicle:Int ):Null<Float> {
+		return link.type.speeds.get( vehicle );
+	}
+
+	static
+	function getTravelTime( link:Link, vehicle:Int ):Null<Float> {
+		var speed = getSpeed( link, vehicle );
+		return speed != null ? link.extension/speed*60: null;	
 	}
 
 	static

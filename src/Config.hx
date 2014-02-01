@@ -1,8 +1,9 @@
 typedef Config = {
 	var baseDir:Null<String>;
+	var nodeTolerance:Float;
+	var defaultVehicle:Int;
 	var vijka:VijkaIOFiles;
 	var edit:EditIOFiles;
-	var nodeTolerance:Float;
 	var nodeGen:NodeGenerationSettings;
 	var linkGen:LinkGenerationSettings;
 }
@@ -19,6 +20,8 @@ typedef LinkGenerationSettings = {
 
 typedef VijkaIOFiles = {
 	var nodeFile:String;
+	var linkTypeFile:String;
+	var linkSpeedFile:String;
 	var linkFile:String;
 	var linkAliasFile:Null<String>;
 	var linkShapeFile:Null<String>;

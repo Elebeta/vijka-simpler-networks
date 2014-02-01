@@ -7,6 +7,7 @@ import format.ett.Reader;
 import format.ett.Writer;
 import haxe.io.Eof;
 import network.Link;
+import network.LinkType;
 import network.Network;
 import network.Node;
 import Sys.print;
@@ -22,6 +23,10 @@ class VijkaIO {
 		var network = new Network( config.nodeTolerance );
 		println( "Reading a Vijka Network... Nodes" );
 		readNodes( network, config.baseDir+config.vijka.nodeFile );
+		println( "Reading a Vijka Network... Link types" );
+		readTypes( network, config.baseDir+config.vijka.linkTypeFile );
+		println( "Reading a Vijka Network... Link type speeds" );
+		readSpeeds( network, config.baseDir+config.vijka.linkSpeedFile );
 		println( "Reading a Vijka Network... Links" );
 		readLinks( network, config.baseDir+config.vijka.linkFile );
 		if ( config.vijka.linkAliasFile != null ) {
@@ -60,6 +65,39 @@ class VijkaIO {
 	}
 
 	public static
+	function readTypes( network:Network, path:String ) {
+		var einp = readEtt( path );
+		while ( true ) {
+			var vijkaType = try { einp.fastReadRecord( elebeta.ett.vijka.LinkType.makeEmpty() ); }
+			                catch ( e:Eof ) { null; };
+			if ( vijkaType == null ) break;
+			var type = makeType( network, vijkaType );
+			network.types.add( type );
+		}
+		einp.close();
+	}
+
+	static
+	function makeType( network, vijkaType:elebeta.ett.vijka.LinkType ) {
+		return new LinkType( vijkaType.id );
+	}
+
+	public static
+	function readSpeeds( network:Network, path:String ) {
+		var einp = readEtt( path );
+		while ( true ) {
+			var vijkaSpeed = try { einp.fastReadRecord( elebeta.ett.vijka.LinkTypeSpeed.makeEmpty() ); }
+			                catch ( e:Eof ) { null; };
+			if ( vijkaSpeed == null ) break;
+			var type = network.types.getId( vijkaSpeed.typeId );
+			if ( type == null )
+				throw 'No link type ${type.id}';
+			type.speeds.set( vijkaSpeed.vehicleId, vijkaSpeed.speed );
+		}
+		einp.close();
+	}
+
+	public static
 	function readLinks( network:Network, path:String ) {
 		var einp = readEtt( path );
 		while ( true ) {
@@ -74,13 +112,16 @@ class VijkaIO {
 
 	static
 	function makeLink( network:Network, vijkaLink:elebeta.ett.vijka.Link ) {
+		var type = network.types.getId( vijkaLink.typeId );
+		if ( type == null )
+			throw 'Missing link type ${vijkaLink.typeId}';
 		var from = network.nodes.getId( vijkaLink.startNodeId );
 		if ( from == null )
 			throw 'Missing from node ${vijkaLink.startNodeId} for link ${vijkaLink.id}';
 		var to = network.nodes.getId( vijkaLink.finishNodeId );
 		if ( to == null )
 			throw 'Missing to node ${vijkaLink.finishNodeId} for link ${vijkaLink.id}';
-		return new Link( from, to, vijkaLink.id, vijkaLink.extension, vijkaLink.typeId, vijkaLink.toll );
+		return new Link( from, to, vijkaLink.id, vijkaLink.extension, type, vijkaLink.toll );
 	}
 
 	public static
@@ -135,6 +176,7 @@ class VijkaIO {
 		println( "Writing the Vijka Network..." );
 		println( "Writing the Vijka Network... Nodes" );
 		writeNodes( network, config.baseDir+config.vijka.nodeFile );
+		// types and speeds are not writen
 		println( "Writing the Vijka Network... Links" );
 		writeLinks( network, config.baseDir+config.vijka.linkFile );
 		if ( config.vijka.linkAliasFile != null ) {
@@ -172,7 +214,7 @@ class VijkaIO {
 
 	static
 	function makeVijkaLink( link:Link ):elebeta.ett.vijka.Link {
-		return elebeta.ett.vijka.Link.make( link.id, link.from.id, link.to.id, link.extension, link.type, link.toll );
+		return elebeta.ett.vijka.Link.make( link.id, link.from.id, link.to.id, link.extension, link.type.id, link.toll );
 	}
 
 	public static
