@@ -140,7 +140,8 @@ class VijkaIO {
 	static
 	function importShape( link:Link, vijkaShape:elebeta.ett.vijka.LinkShape ) {
 		link.inflections.clear();
-		for ( vp in vijkaShape.shape.array() ) {
+		var points = vijkaShape.shape.array();
+		for ( vp in points.slice( 1, points.length - 1 ) ) {
 			link.inflections.add( makePoint( vp ) );
 		}
 	}

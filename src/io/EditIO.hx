@@ -70,6 +70,8 @@ class EditIO {
 			var data:LinkFeatureProperties = feature.properties;
 
 			var inflections = points.slice( 1, points.length-1 ).map( cpoint );
+			// if ( inflections.length != points.length - 2 )
+			// 	throw "Oppsss!";
 
 			var link = new Link( from, to, 0, 0., null, 0., inflections );
 
