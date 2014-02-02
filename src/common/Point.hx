@@ -19,6 +19,11 @@ class Point {
 		return distance( this, p );
 	}
 
+	public
+	function toString() {
+		return '[ $x, $y ]';
+	}
+
 	public static
 	function distance( a:Point, b:Point ) {
 		return 1e-3*jonas.MathExtension.earth_distance_haversine( a.y, a.x, b.y, b.x );
